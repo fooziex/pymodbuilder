@@ -16,4 +16,6 @@ To do:
 - Support Linux
 - More output, robustness
 - Automatic diff on modules, e.g. pycares
+- Build branches / release versions
+- Build Numpy / Scipy with ICL
 - Make it 'pythonic'
