@@ -21,7 +21,6 @@ default_commands=['python setup.py bdist_wininst',lambda name: rmtree( pjoin(bui
 ipython_commands=default_commands.copy()
 ipython_commands.insert(0,'git submodule init')
 ipython_commands.insert(1,'git submodule update')
-['git submodule init','git submodule update','python setup.py bdist_wininst',lambda name: rmtree( pjoin(buildhome ,name) ),lambda name: shutil.copytree( pjoin(pjoin(home,name),'dist'), pjoin(buildhome,name) )]
 modules={}
 modules['pygments']={'directory':'pygments', 'tool':tools['hg'], 'url':'https://bitbucket.org/birkenfeld/pygments-main','commands':default_commands}
 modules['sphinx']={'directory':'sphinx', 'tool':tools['hg'], 'url':'https://bitbucket.org/birkenfeld/sphinx','commands':default_commands}
@@ -34,7 +33,7 @@ modules['distribute']={'directory':'distribute', 'tool':tools['hg'], 'url':'http
 modules['pyparsing']={'directory':'pyparsing', 'tool':tools['svn'], 'url':'https://pyparsing.svn.sourceforge.net/svnroot/pyparsing/trunk/src', 'commands':default_commands}
 modules['cython']={'directory':'cython', 'tool':tools['git'], 'url':'https://github.com/cython/cython.git', 'commands':default_commands}
 modules['tornado']={'directory':'tornado', 'tool':tools['git'], 'url':'https://github.com/facebook/tornado.git', 'commands':default_commands}
-modules['pycares']={'directory':'pycares', 'tool':tools['git'], 'url':'https://github.com/saghul/pycares.git', 'commands':default_commands}
+#modules['pycares']={'directory':'pycares', 'tool':tools['git'], 'url':'https://github.com/saghul/pycares.git', 'commands':default_commands}
 modules['paramiko']={'directory':'paramiko', 'tool':tools['git'], 'url':'https://github.com/paramiko/paramiko.git', 'commands':default_commands}
 modules['WMI']={'directory':'WMI', 'tool':tools['svn'], 'url':'http://svn.timgolden.me.uk/wmi/trunk/', 'commands':default_commands}
 #modules['']={'directory':'', 'tool':tools[''], 'url':'', 'commands':default_commands}
