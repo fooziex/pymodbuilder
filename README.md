@@ -14,4 +14,5 @@ To do:
 - Use cwd / command line option for home directory
 - Support Linux
 - More output, robustness
+- Automatic diff on modules, e.g. pycares
 - Make it 'pythonic'
