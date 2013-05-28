@@ -13,7 +13,7 @@ def rmtree(path):
         shutil.rmtree(path)
         
 home=r'c:\home\build\python'
-buildhome=pjoin(home,'build')
+buildhome=pjoin(home,'ball')
 tools={}
 tools['hg']='hg clone -y -q {url} {path}'
 tools['git']='git clone -q {url} {path}' 
