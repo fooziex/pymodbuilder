@@ -10,7 +10,7 @@ Warning! this script deletes directories with abandon (well, it wants to). Make 
 
 To do:
 ------
-- Convert "modules" dict to SQLite db
+- **Convert "modules" dict to SQLite db**
 - Command line options: module package types, modules to build, add modules to database (seperate script?)
 - Use cwd / command line option for home directory
 - Support Linux
