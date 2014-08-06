@@ -1,34 +1,59 @@
-import subprocess, os, sys, shutil, copy
+__author__ = 'hofsomme'
+
+import subprocess
+import os,sys
 from os.path import join as pjoin
 from os import chdir
+import shutil
+from time import sleep
+import copy
 
-
-def rmtree(path, ignore_errors=False):
+def rmtree(path,ignore_errors=False):
     if os.path.isdir(path):
-        shutil.rmtree(path, ignore_errors=ignore_errors)
+        shutil.rmtree(path,ignore_errors=ignore_errors)
 
-# these should be from console input
-build = []
-dontbuild = []
+build=[]
+#build=['pandas']
+
+dontbuild=[]
+
+PROXY = False
 
 home = r'c:\home\build\python'
 buildhome = pjoin(home, 'ball')
 tools = dict()
 tools['hg'] = r'hg clone -y -q {url} {path}'
 tools['git'] = r'git clone -q {url} {path}'
-tools['svn'] = 'svn co -q --non-interactive {url} {path}'
+tools['svn'] = 'svn co -q --non-interactive --trust-server-cert {url} {path}'
 tools['bzr'] = 'bzr branch {url} {path}'
 os.environ.putenv('VSPYCOMNTOOLS', 'C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\Common7\Tools\\')
+if PROXY:
+    os.environ.putenv('HTTP_PROXY', 'http://web-proxy.houston.hp.com:8080')
+    os.environ.putenv('HTTPS_PROXY', 'http://web-proxy.houston.hp.com:8080')
+    subprocess.check_call('proxies-on.bat Q')
+else:
+    os.environ.putenv('HTTP_PROXY', '')
+    os.environ.putenv('HTTPS_PROXY', '')
+    os.environ.unsetenv('HTTP_PROXY')
+    os.environ.unsetenv('HTTPS_PROXY')
+    subprocess.check_call('proxies-off.bat Q')
+
+
 pyver = str(sys.version_info[0])
 
-default_commands = [
-    'python setup.py bdist_wininst',
-    lambda name: rmtree(pjoin(buildhome, name)),
-    lambda name: shutil.copytree(pjoin(home, name, 'dist'), pjoin(buildhome, name)),
-    lambda nada: chdir(home),
-    lambda name: rmtree(pjoin(home, name, '.git'), ignore_errors=True),
-    lambda name: rmtree(pjoin(home, name), ignore_errors=True)
-]
+default_commands=[
+                  'python setup.py bdist_wininst',
+                  lambda name: rmtree( pjoin(buildhome, name) ),
+                  lambda name: sleep(1),
+                  lambda name: shutil.copytree(  pjoin( home,name,'dist'), pjoin(buildhome,name) ),
+                  lambda nada: chdir(home),
+                  lambda name: rmtree( pjoin(home, name,'.git'), ignore_errors=True ),
+                  lambda name: rmtree( pjoin(home, name), ignore_errors=True )
+                 ]
+ipaddr_commands = copy.copy(default_commands)
+ipaddr_commands.pop(0)
+ipython_commands = copy.copy(default_commands)
+ipython_commands.insert(0, 'python trunk/setup.py bdist_wininst')
 ipython_commands = copy.copy(default_commands)
 ipython_commands.insert(0, 'git submodule init')
 ipython_commands.insert(1, 'git submodule update')
@@ -98,7 +123,9 @@ if( pyver == '2' ):
     #needs 2to3
     modules['val']={'directory':'val', 'tool':tools['git'], 'url':'https://github.com/thisfred/val.git', 'commands':default_commands}
     #needs 2to3
-    
+    modules['pycerberus']={'directory':'pycerberus', 'tool':tools['hg'], 'url':'http://www.schwarz.eu/opensource/hg/pycerberus', 'commands':default_commands}
+    #dies on 2to3 i think
+
 #Py3
 if( pyver == '3' ):
     modules['pyparsing']={'directory':'pyparsing', 'tool':tools['svn'], 'url':'https://pyparsing.svn.sourceforge.net/svnroot/pyparsing/trunk/src/', 'commands':default_commands}
@@ -107,8 +134,9 @@ if( pyver == '3' ):
 if( os.name == 'posix' ):
     modules['termbox']={'directory':'termbox', 'tool':tools['git'], 'url':'https://github.com/nsf/termbox.git', 'commands':default_commands}
     modules['psh']={'directory':'psh', 'tool':tools['git'], 'url':'https://github.com/KonishchevDmitry/psh.git', 'commands':default_commands}
+    modules['PySecure']={'directory':'PySecure', 'tool':tools['git'], 'url':'https://github.com/dsoprea/PySecure.git', 'commands':default_commands}
 
-    
+
 modules['docutils']={'directory':'docutils', 'tool':tools['svn'], 'url':'http://svn.code.sf.net/p/docutils/code/trunk/docutils', 'commands':default_commands}
 modules['WMI']={'directory':'WMI', 'tool':tools['svn'], 'url':'http://svn.timgolden.me.uk/wmi/trunk/', 'commands':default_commands}
 modules['stagger']={'directory':'stagger', 'tool':tools['svn'], 'url':'http://stagger.googlecode.com/svn/trunk/', 'commands':default_commands}
@@ -116,6 +144,7 @@ modules['pyzmq']={'directory':'pyzmq', 'tool':tools['git'], 'url':'https://githu
 modules['pygments']={'directory':'pygments', 'tool':tools['hg'], 'url':'https://bitbucket.org/birkenfeld/pygments-main','commands':default_commands}
 modules['sphinx']={'directory':'sphinx', 'tool':tools['hg'], 'url':'https://bitbucket.org/birkenfeld/sphinx','commands':default_commands}
 modules['nose']={'directory':'nose', 'tool':tools['git'], 'url':'https://github.com/nose-devs/nose.git', 'commands':default_commands}
+#modules['pexpect']={'directory':'pexpect', 'tool':tools['git'], 'url':'https://github.com/pexpect/pexpect.git', 'commands':default_commands}
 modules['pexpect']={'directory':'pexpect', 'tool':tools['git'], 'url':'https://github.com/yuzhichang/pexpect.git', 'commands':default_commands}
 modules['pyreadline']={'directory':'pyreadline', 'tool':tools['git'], 'url':'https://github.com/pyreadline/pyreadline.git', 'commands':default_commands}
 modules['ipython']={'directory':'ipython', 'tool':tools['git'], 'url':'https://github.com/ipython/ipython.git', 'commands':ipython_commands}
@@ -126,7 +155,7 @@ modules['regex']={'directory':'regex', 'tool':tools['hg'], 'url':'https://code.g
 modules['pylockfile']={'directory':'pylockfile', 'tool':tools['git'], 'url':'https://github.com/smontanaro/pylockfile.git', 'commands':default_commands}
 modules['django']={'directory':'django', 'tool':tools['git'], 'url':'https://github.com/django/django.git', 'commands':default_commands}
 modules['django-bootstrap']={'directory':'django-bootstrap', 'tool':tools['git'], 'url':'https://github.com/dyve/django-bootstrap-toolkit.git', 'commands':default_commands}
-modules['numexpr']={'directory':'numexpr', 'tool':tools['hg'], 'url':'https://code.google.com/p/numexpr/', 'commands':default_commands}
+modules['numexpr']={'directory':'numexpr', 'tool':tools['git'], 'url':'https://github.com/pydata/numexpr.git', 'commands':default_commands}
 modules['bottleneck']={'directory':'bottleneck', 'tool':tools['git'], 'url':'https://github.com/kwgoodman/bottleneck.git', 'commands':default_commands}
 modules['xlrd']={'directory':'xlrd', 'tool':tools['git'], 'url':'https://github.com/python-excel/xlrd.git', 'commands':default_commands}
 modules['openpyxl']={'directory':'openpyxl', 'tool':tools['hg'], 'url':'https://bitbucket.org/ericgazoni/openpyxl', 'commands':default_commands}
@@ -139,16 +168,17 @@ modules['jinja2']={'directory':'jinja2', 'tool':tools['git'], 'url':'https://git
 modules['markupsafe']={'directory':'markupsafe', 'tool':tools['git'], 'url':'https://github.com/mitsuhiko/markupsafe.git', 'commands':default_commands}
 modules['pip']={'directory':'pip', 'tool':tools['git'], 'url':'https://github.com/pypa/pip.git', 'commands':default_commands}
 modules['mako']={'directory':'mako', 'tool':tools['git'], 'url':'http://git.makotemplates.org/mako.git', 'commands':default_commands}
-modules['meta']={'directory':'meta', 'tool':tools['git'], 'url':'https://github.com/numba/Meta.git', 'commands':default_commands}
+modules['meta']={'directory':'meta', 'tool':tools['git'], 'url':'https://github.com/srossross/Meta.git', 'commands':default_commands}
 modules['virtualenv']={'directory':'virtualenv', 'tool':tools['git'], 'url':'https://github.com/pypa/virtualenv.git', 'commands':default_commands}
 modules['dateutil']={'directory':'dateutil', 'tool':tools['bzr'], 'url':'lp:dateutil', 'commands':default_commands}
 modules['pyramid']={'directory':'pyramid', 'tool':tools['git'], 'url':'https://github.com/Pylons/pyramid.git', 'commands':default_commands}
 modules['sqlsoup']={'directory':'sqlsoup', 'tool':tools['hg'], 'url':'https://bitbucket.org/zzzeek/sqlsoup', 'commands':default_commands}
 modules['pathlib']={'directory':'pathlib', 'tool':tools['hg'], 'url':'https://bitbucket.org/pitrou/pathlib', 'commands':default_commands}
 modules['pyrasite']={'directory':'pyrasite', 'tool':tools['git'], 'url':'https://github.com/lmacken/pyrasite.git', 'commands':default_commands}
+modules['pyrasite-gui']={'directory':'pyrasite-gui', 'tool':tools['git'], 'url':'https://github.com/lmacken/pyrasite-gui.git', 'commands':default_commands}
 modules['iep']={'directory':'iep', 'tool':tools['hg'], 'url':'https://bitbucket.org/iep-project/iep', 'commands':default_commands}
 modules['pyzolib']={'directory':'pyzolib', 'tool':tools['hg'], 'url':'https://bitbucket.org/pyzo/pyzolib', 'commands':default_commands}
-modules['httplib2']={'directory':'httplib2', 'tool':tools['hg'], 'url':'https://code.google.com/p/httplib2/', 'commands':default_commands}
+modules['httplib2']={'directory':'httplib2', 'tool':tools['git'], 'url':'https://github.com/jcgregorio/httplib2.git', 'commands':default_commands}
 modules['psh']={'directory':'psh', 'tool':tools['git'], 'url':'https://github.com/KonishchevDmitry/psh.git', 'commands':default_commands}
 modules['guidata']={'directory':'guidata', 'tool':tools['hg'], 'url':'https://code.google.com/p/guidata/', 'commands':default_commands}
 modules['guiqwt']={'directory':'guiqwt', 'tool':tools['hg'], 'url':'https://code.google.com/p/guiqwt/', 'commands':default_commands}
@@ -176,7 +206,7 @@ modules['colander']={'directory':'colander', 'tool':tools['git'], 'url':'https:/
 modules['substanced']={'directory':'substanced', 'tool':tools['git'], 'url':'https://github.com/Pylons/substanced.git', 'commands':default_commands}
 modules['six']={'directory':'six', 'tool':tools['hg'], 'url':'https://bitbucket.org/gutworth/six', 'commands':default_commands}
 modules['blosc']={'directory':'blosc', 'tool':tools['git'], 'url':'https://github.com/FrancescAlted/python-blosc.git', 'commands':default_commands}
-modules['comtypes']={'directory':'comtypes', 'tool':tools['git'], 'url':'https://github.com/shanewholloway/comtypes.git', 'commands':default_commands}
+modules['comtypes']={'directory':'comtypes', 'tool':tools['git'], 'url':'https://github.com/enthought/comtypes.git', 'commands':default_commands}
 modules['pyhook']={'directory':'pyhook', 'tool':tools['git'], 'url':'http://git.code.sf.net/p/pyhook/code', 'commands':default_commands}
 modules['yasv']={'directory':'yasv', 'tool':tools['git'], 'url':'https://github.com/vyalow/yasv.git', 'commands':default_commands}
 modules['mpmath']={'directory':'mpmath', 'tool':tools['git'], 'url':'https://github.com/fredrik-johansson/mpmath.git', 'commands':default_commands}
@@ -235,19 +265,42 @@ modules['isbn_hyphenate']={'directory':'isbn_hyphenate', 'tool':tools['git'], 'u
 modules['isbnid']={'directory':'isbnid', 'tool':tools['git'], 'url':'https://code.google.com/p/isbnid/', 'commands':default_commands}
 modules['pyisbn']={'directory':'pyisbn', 'tool':tools['git'], 'url':'https://github.com/JNRowe/pyisbn.git', 'commands':default_commands}
 modules['cosmic']={'directory':'cosmic', 'tool':tools['git'], 'url':'https://github.com/cosmic-api/cosmic.py.git', 'commands':default_commands}
+modules['teleport']={'directory':'teleport', 'tool':tools['git'], 'url':'https://github.com/cosmic-api/teleport.py.git', 'commands':default_commands}
 #modules['pyormish']={'directory':'pyormish', 'tool':tools['git'], 'url':'https://github.com/webgovernor/pyormish.git', 'commands':default_commands}
 modules['jsonobject']={'directory':'jsonobject', 'tool':tools['git'], 'url':'https://github.com/dannyroberts/jsonobject.git', 'commands':default_commands}
 modules['cchardet']={'directory':'cchardet', 'tool':tools['git'], 'url':'https://github.com/PyYoshi/cChardet.git', 'commands':default_commands}
 modules['py']={'directory':'py', 'tool':tools['hg'], 'url':'https://bitbucket.org/hpk42/py', 'commands':default_commands}
 modules['iowait']={'directory':'iowait', 'tool':tools['bzr'], 'url':'lp:python-iowait', 'commands':default_commands}
+modules['hyper']={'directory':'hyper', 'tool':tools['git'], 'url':'https://github.com/Lukasa/hyper.git', 'commands':default_commands}
+modules['stage']={'directory':'stage', 'tool':tools['hg'], 'url':'https://bitbucket.org/lcrees/stage', 'commands':default_commands}
+modules['evergreen']={'directory':'evergreen', 'tool':tools['git'], 'url':'https://github.com/saghul/evergreen.git', 'commands':default_commands}
+modules['cryptacular']={'directory':'cryptacular', 'tool':tools['hg'], 'url':'https://bitbucket.org/dholth/cryptacular', 'commands':default_commands}
+modules['testtools']={'directory':'testtools', 'tool':tools['git'], 'url':'https://github.com/testing-cabal/testtools.git', 'commands':default_commands}
+modules['fixtures']={'directory':'fixtures', 'tool':tools['bzr'], 'url':'lp:python-fixtures', 'commands':default_commands}
+modules['webargs']={'directory':'webargs', 'tool':tools['git'], 'url':'https://github.com/sloria/webargs.git', 'commands':default_commands}
+modules['ftputil']={'directory':'ftputil', 'tool':tools['hg'], 'url':'http://hg.sschwarzer.net/ftputil', 'commands':default_commands}
+modules['bundle']={'directory':'bundle', 'tool':tools['git'], 'url':'https://github.com/ask/bundle.git', 'commands':default_commands}
+modules['htmltemplate']={'directory':'htmltemplate', 'tool':tools['hg'], 'url':'https://bitbucket.org/hhas/htmltemplate', 'commands':default_commands}
+modules['ewave']={'directory':'ewave', 'tool':tools['git'], 'url':'https://github.com/melizalab/py-ewave.git', 'commands':default_commands}
+modules['wsgikit']={'directory':'wsgikit', 'tool':tools['git'], 'url':'https://github.com/Mikhus/wsgikit.git', 'commands':default_commands}
+#modules['pythonnet']={'directory':'pythonnet', 'tool':tools['svn'], 'url':'http://svn.code.sf.net/p/pythonnet/code/trunk/pythonnet', 'commands':default_commands}
+modules['jsonschema']={'directory':'jsonschema', 'tool':tools['git'], 'url':'https://github.com/Julian/jsonschema.git', 'commands':default_commands}
+modules['jsonpointer']={'directory':'jsonpointer', 'tool':tools['git'], 'url':'https://github.com/stefankoegl/python-json-pointer.git', 'commands':default_commands}
+modules['click']={'directory':'click', 'tool':tools['git'], 'url':'https://github.com/mitsuhiko/click.git', 'commands':default_commands}
+modules['geoip2']={'directory':'geoip2', 'tool':tools['git'], 'url':'https://github.com/maxmind/GeoIP2-python.git', 'commands':default_commands}
+modules['ipython-beautifulsoup']={'directory':'ipython-beautifulsoup', 'tool':tools['git'], 'url':'https://github.com/Psycojoker/ipython-beautifulsoup.git', 'commands':default_commands}
+modules['maxminddb']={'directory':'maxminddb', 'tool':tools['git'], 'url':'https://github.com/maxmind/MaxMind-DB-Reader-python.git', 'commands':default_commands}
+modules['ipaddr']={'directory':'ipaddr', 'tool':tools['git'], 'url':'https://code.google.com/p/ipaddr-py/', 'commands':ipaddr_commands}
+#modules['pythonpy']={'directory':'pythonpy', 'tool':tools['git'], 'url':'https://github.com/Russell91/pythonpy.git', 'commands':default_commands}
+modules['conda']={'directory':'conda', 'tool':tools['git'], 'url':'https://github.com/conda/conda.git', 'commands':default_commands}
+modules['slugify']={'directory':'slugify', 'tool':tools['git'], 'url':'https://github.com/zacharyvoase/slugify.git', 'commands':default_commands}
 
 
-    
 #modules['pandas']={'directory':'pandas', 'tool':tools['git'], 'url':'https://github.com/pydata/pandas.git', 'commands':default_commands}
 
 if 'pandas' in build:
-    modules={}
-    os.environ.putenv('VSPYCOMNTOOLS','C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\Common7\Tools\\')
+    modules = {}
+    os.environ.putenv('VSPYCOMNTOOLS', 'C:\\Program Files (x86)\\Microsoft Visual Studio 11.0\\Common7\Tools\\')
     modules['pandas']={'directory':'pandas', 'tool':tools['git'], 'url':'https://github.com/pydata/pandas.git', 'commands':default_commands}
 
 
@@ -257,11 +310,14 @@ for module in modules:
     wm = modules[module]
     modules[module]['tool'] = wm['tool'].format(url=wm['url'], path=pjoin(home, wm['directory']))
 
+
 results = {}
-#build=build+[]
-dontbuild = dontbuild + ['openpyxl', 'hachoir', 'cx_Freeze', 'stagger', 'bcrypt', 'logbook', 'duckduckgo', 'pycares']
+
+build = []
+
+dontbuild = ['bcrypt','defusedexpat','duckduckgo','ftputil','pycares','stagger','bottleneck'.'mako','pyhook','geoip2','ipaddr','pycrypto','lz4','openpyxl']
+
 filtered = []
-#filtered = ['code.google.com']
 
 chdir(home)
 for module in modules:
@@ -272,10 +328,14 @@ for module in modules:
     wm = modules[module]
     if True in [f in wm['tool'] for f in filtered]:
         continue
+    print('Building:  ' + module)
     wd = pjoin(home, wm['directory'])
     if os.path.isdir(wd):
         rmtree(pjoin(home, wm['directory']))
-    subprocess.check_output(wm['tool'])
+    try:
+        subprocess.check_output(wm['tool'])
+    except:
+        print("Failed on " + wm['tool'])
     chdir(wd)
     results[module] = {}
     for command in wm['commands']:
