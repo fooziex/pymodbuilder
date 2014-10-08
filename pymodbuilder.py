@@ -1,9 +1,8 @@
-__author__ = 'hofsomme'
-
 import subprocess
 import os,sys
 from os.path import join as pjoin
-from os import chdir
+from os import chdir, rmdir, mkdir
+import platform
 import shutil
 from time import sleep
 import copy
@@ -17,7 +16,7 @@ build=[]
 
 dontbuild=[]
 
-PROXY = False
+PROXY=False
 
 home = r'c:\home\build\python'
 buildhome = pjoin(home, 'ball')
@@ -28,8 +27,8 @@ tools['svn'] = 'svn co -q --non-interactive --trust-server-cert {url} {path}'
 tools['bzr'] = 'bzr branch {url} {path}'
 os.environ.putenv('VSPYCOMNTOOLS', 'C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\Common7\Tools\\')
 if PROXY:
-    os.environ.putenv('HTTP_PROXY', 'http://web-proxy.houston.hp.com:8080')
-    os.environ.putenv('HTTPS_PROXY', 'http://web-proxy.houston.hp.com:8080')
+    os.environ.putenv('HTTP_PROXY', 'http://localhost:8080')
+    os.environ.putenv('HTTPS_PROXY', 'http://localhost:8080')
     subprocess.check_call('proxies-on.bat Q')
 else:
     os.environ.putenv('HTTP_PROXY', '')
