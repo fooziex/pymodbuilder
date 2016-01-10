@@ -5,7 +5,7 @@ Python module build script.
 
 Usage:
 -----------
-Currently you should edit the "home" variable to be an extant directory, and comment out any modules you don't want built. You need a working Python build environment on your PATH, including git, hg, and svn. 
+Currently you should edit the "home" variable to be an extant directory, and comment out any modules you don't want built (ever). Modules in the "build" list will be built, and the "dontbuild" list will prevent any named modules from being built. You need a working Python build environment on your PATH, including git, hg, and svn. 
 Warning! this script deletes directories with abandon (well, it wants to). Make sure you have nothing important in any dir inside the "home" you specify.
 
 To do:
